@@ -30,6 +30,26 @@ export class QuarryEngine {
     // but index are accessible by properties
     // currentTrack.id , currentTrack.album
 
+    playClip(seconds: number = 5) {
+        if (!this.currentTrack) return;
+
+        // 1. Setup or update the audio player
+        if (!this.audioElement) {
+            this.audioElement = new Audio(this.currentTrack.previewUrl);
+        } else {
+            this.audioElement.src = this.currentTrack.previewUrl;
+        }
+
+        // 2. Start the music
+        this.isPlaying = true;
+        this.audioElement.play();
+
+        // 3. Set a timer to stop the music automatically
+        setTimeout(() => {
+            this.stop();
+        }, seconds * 1000);
+    }
+    
     // METHODS 
     stop() {
         this.audioElement?.pause();
