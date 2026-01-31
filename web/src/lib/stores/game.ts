@@ -43,3 +43,8 @@ export function markAsPlayed(id: string){
         return unique;
     });
 }
+
+export function clearHistory () {
+    playedTrackIds.set([]);
+    localStorage.removeItem('playedTracks');
+}

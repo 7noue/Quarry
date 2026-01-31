@@ -4,6 +4,7 @@ import type { MusicTrack } from '$lib/core/interfaces';
 export class QuarryEngine {
     // RUNES: Reactive state for Svelte 5
     tracks = $state<MusicTrack[]>([]);
+    private timerId: ReturnType<typeof setTimeout> | null = null;
     // writable<string[]>(storedHistory)
     // Okay, about this variable, this tells that it only accepts TYPE  like MusicTrack (we did set earlier)
     // <TYPE>(initial value)
@@ -33,25 +34,28 @@ export class QuarryEngine {
     playClip(seconds: number = 5) {
         if (!this.currentTrack) return;
 
-        // 1. Setup or update the audio player
+        // 1. Clear any existing timer so we don't overlap
+        if (this.timerId) clearTimeout(this.timerId);
+
+        // 2. Setup audio
         if (!this.audioElement) {
             this.audioElement = new Audio(this.currentTrack.previewUrl);
         } else {
             this.audioElement.src = this.currentTrack.previewUrl;
         }
 
-        // 2. Start the music
         this.isPlaying = true;
         this.audioElement.play();
 
-        // 3. Set a timer to stop the music automatically
-        setTimeout(() => {
+        // 3. Set the new timer
+        this.timerId = setTimeout(() => {
             this.stop();
         }, seconds * 1000);
     }
     
     // METHODS 
     stop() {
+        if (this.timerId) clearTimeout(this.timerId);
         this.audioElement?.pause();
         if (this.audioElement) this.audioElement.currentTime = 0
         this.isPlaying = false;
@@ -61,13 +65,21 @@ export class QuarryEngine {
     
     reveal() {
         this.isRevealed = true;
-        markAsPlayed(this.currentTrack.id)
+       
     }
     // We send the revealed song to markAsPlayed, a function that store it to localStorage, so even after refresh we can continue the game smoothly and avoid encountering played song in a session
 
     next() {
+        if(this.currentTrack) {
+             markAsPlayed(this.currentTrack.id);
+        }
         this.stop()
         this.isRevealed = false;
-        this.currentIndex++;
+    }
+
+    reset() {
+        this.stop()
+        this.isRevealed = false;
+        this.isPlaying = false;
     }
 }
